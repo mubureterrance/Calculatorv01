@@ -77,8 +77,17 @@ export class ThemeManager {
         if (savedTheme && this.themes[savedTheme]) {
             this.setTheme(savedTheme);
         } else {
-            this.setTheme('light');
+            // Check system preference for dark mode
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            this.setTheme(prefersDark ? 'dark' : 'light');
         }
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('calculatorTheme')) {
+                this.setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
     }
 
     /**
@@ -100,6 +109,12 @@ export class ThemeManager {
 
         this.currentTheme = themeName;
         localStorage.setItem('calculatorTheme', themeName);
+
+        // Update theme toggle button state
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.checked = themeName === 'dark';
+        }
     }
 
     /**

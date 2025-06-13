@@ -1,173 +1,152 @@
 /**
- * @fileoverview Keypad module for managing calculator button interactions.
- * Handles button creation, event handling, and keyboard input mapping.
+ * @fileoverview Manages the calculator keypad and button interactions.
  */
 
 /**
- * Keypad class for managing calculator button interactions.
- * Creates and manages calculator buttons, handles click events, and maps keyboard inputs.
- * @class Keypad
- * @example
- * const keypad = new Keypad(display, calculator);
- * keypad.initialize(); // Creates and sets up all calculator buttons
+ * Class representing the calculator keypad.
  */
 export class Keypad {
     /**
      * Creates a new Keypad instance.
-     * @param {Display} display - The calculator display instance
+     * @param {Display} display - The display module instance
      * @param {Calculator} calculator - The calculator instance
-     * @constructor
      */
     constructor(display, calculator) {
-        /** @private {Display} Reference to the calculator display */
+        /** @private {Display} The display module instance */
         this.display = display;
         
-        /** @private {Calculator} Reference to the calculator instance */
+        /** @private {Calculator} The calculator instance */
         this.calculator = calculator;
         
-        /** @private {Object} Mapping of keyboard keys to calculator buttons */
-        this.keyMap = {
-            '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
-            '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
-            '.': '.', '+': '+', '-': '-', '*': '×', '/': '÷',
-            'Enter': '=', 'Escape': 'C', 'Backspace': '⌫',
-            'Delete': 'C', 'c': 'C', '=': '='
+        /** @private {Object} Button definitions */
+        this.buttons = {
+            // Memory buttons
+            'M+': { type: 'memory', value: 'M+', order: 0 },
+            'M-': { type: 'memory', value: 'M-', order: 1 },
+            'MR': { type: 'memory', value: 'MR', order: 2 },
+            'MC': { type: 'memory', value: 'MC', order: 3 },
+            
+            // Functions
+            'C': { type: 'function', value: 'C', order: 4 },
+            '⌫': { type: 'function', value: '⌫', order: 5 },
+            '(': { type: 'function', value: '(', order: 6 },
+            ')': { type: 'function', value: ')', order: 7 },
+            
+            // Numbers and operations
+            '7': { type: 'number', value: '7', order: 8 },
+            '8': { type: 'number', value: '8', order: 9 },
+            '9': { type: 'number', value: '9', order: 10 },
+            '/': { type: 'operation', value: '/', order: 11 },
+            
+            '4': { type: 'number', value: '4', order: 12 },
+            '5': { type: 'number', value: '5', order: 13 },
+            '6': { type: 'number', value: '6', order: 14 },
+            '*': { type: 'operation', value: '*', order: 15 },
+            
+            '1': { type: 'number', value: '1', order: 16 },
+            '2': { type: 'number', value: '2', order: 17 },
+            '3': { type: 'number', value: '3', order: 18 },
+            '-': { type: 'operation', value: '-', order: 19 },
+            
+            '0': { type: 'number', value: '0', order: 20 },
+            '.': { type: 'number', value: '.', order: 21 },
+            '=': { type: 'function', value: '=', order: 22 },
+            '+': { type: 'operation', value: '+', order: 23 }
         };
-
-        /** @private {Object} Button configuration for different button types */
-        this.buttonConfig = {
-            number: { className: 'number' },
-            operator: { className: 'operator' },
-            function: { className: 'function' },
-            equals: { className: 'equals' },
-            clear: { className: 'clear' }
-        };
+        
+        this.initialize();
     }
 
     /**
-     * Initializes the keypad by creating all calculator buttons.
-     * Sets up event listeners for both click and keyboard events.
-     * @example
-     * keypad.initialize(); // Creates and sets up all calculator buttons
+     * Initializes the keypad by creating buttons and setting up event listeners.
+     * @private
      */
     initialize() {
-        this.createButtons();
-        this.setupEventListeners();
-    }
-
-    /**
-     * Creates all calculator buttons and adds them to the keypad container.
-     * @private
-     */
-    createButtons() {
-        const buttonLayout = [
-            ['C', '⌫', '%', '÷'],
-            ['7', '8', '9', '×'],
-            ['4', '5', '6', '-'],
-            ['1', '2', '3', '+'],
-            ['0', '.', '=']
-        ];
-
-        const keypadContainer = document.querySelector('.keypad');
+        const keypadContainer = document.querySelector('.calculator-keypad');
         if (!keypadContainer) {
-            throw new Error('Keypad container not found');
+            console.error('Keypad container not found');
+            return;
         }
 
-        buttonLayout.forEach(row => {
-            const rowElement = document.createElement('div');
-            rowElement.className = 'keypad-row';
+        // Clear any existing buttons
+        keypadContainer.innerHTML = '';
+
+        // Create memory buttons container
+        const memoryContainer = document.createElement('div');
+        memoryContainer.className = 'calculator-memory-buttons';
+        keypadContainer.appendChild(memoryContainer);
+
+        // Create main buttons container
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'calculator-main-buttons';
+        keypadContainer.appendChild(mainContainer);
+
+        // Sort buttons by order
+        const sortedButtons = Object.entries(this.buttons)
+            .sort(([, a], [, b]) => a.order - b.order);
+
+        // Create buttons
+        sortedButtons.forEach(([key, button]) => {
+            const buttonElement = document.createElement('button');
+            buttonElement.textContent = button.value;
+            buttonElement.dataset.type = button.type;
+            buttonElement.dataset.value = button.value;
+            buttonElement.classList.add('calculator-button');
             
-            row.forEach(buttonText => {
-                const button = this.createButton(buttonText);
-                rowElement.appendChild(button);
+            // Add specific classes based on button type
+            switch (button.type) {
+                case 'number':
+                    buttonElement.classList.add('number-button');
+                    break;
+                case 'operation':
+                    buttonElement.classList.add('operation-button');
+                    break;
+                case 'function':
+                    buttonElement.classList.add('function-button');
+                    break;
+                case 'memory':
+                    buttonElement.classList.add('memory-button');
+                    break;
+            }
+            
+            // Add click event listener
+            buttonElement.addEventListener('click', () => {
+                this.handleButtonClick(button.value);
             });
             
-            keypadContainer.appendChild(rowElement);
-        });
-    }
-
-    /**
-     * Creates a single calculator button.
-     * @param {string} text - The text to display on the button
-     * @returns {HTMLButtonElement} The created button element
-     * @private
-     */
-    createButton(text) {
-        const button = document.createElement('button');
-        button.textContent = text;
-        button.dataset.value = text;
-        
-        // Apply appropriate styling based on button type
-        if (text === '=') {
-            Object.assign(button, this.buttonConfig.equals);
-        } else if (['C', '⌫', '%'].includes(text)) {
-            Object.assign(button, this.buttonConfig.function);
-        } else if (['+', '-', '×', '÷'].includes(text)) {
-            Object.assign(button, this.buttonConfig.operator);
-        } else if (text === 'C') {
-            Object.assign(button, this.buttonConfig.clear);
-        } else {
-            Object.assign(button, this.buttonConfig.number);
-        }
-
-        return button;
-    }
-
-    /**
-     * Sets up event listeners for button clicks and keyboard input.
-     * @private
-     */
-    setupEventListeners() {
-        // Button click events
-        document.querySelectorAll('.keypad button').forEach(button => {
-            button.addEventListener('click', () => this.handleButtonClick(button));
+            // Add to appropriate container
+            if (button.type === 'memory') {
+                memoryContainer.appendChild(buttonElement);
+            } else {
+                mainContainer.appendChild(buttonElement);
+            }
         });
 
-        // Keyboard events
-        document.addEventListener('keydown', (event) => this.handleKeyboardInput(event));
+        // Add keyboard event listener
+        document.addEventListener('keydown', (event) => {
+            this.handleKeyboardInput(event);
+        });
     }
 
     /**
      * Handles button click events.
-     * @param {HTMLButtonElement} button - The clicked button element
+     * @param {string} value - The button value
      * @private
      */
-    handleButtonClick(button) {
-        const value = button.dataset.value;
-        this.processInput(value);
-        button.classList.add('active');
-        setTimeout(() => button.classList.remove('active'), 100);
-    }
-
-    /**
-     * Handles keyboard input events.
-     * @param {KeyboardEvent} event - The keyboard event
-     * @private
-     */
-    handleKeyboardInput(event) {
-        const key = event.key;
-        const mappedValue = this.keyMap[key];
-        
-        if (mappedValue) {
-            event.preventDefault();
-            this.processInput(mappedValue);
-            
-            // Visual feedback for keyboard input
-            const button = document.querySelector(`button[data-value="${mappedValue}"]`);
-            if (button) {
-                button.classList.add('active');
-                setTimeout(() => button.classList.remove('active'), 100);
-            }
-        }
-    }
-
-    /**
-     * Processes input from either button clicks or keyboard.
-     * @param {string} value - The input value to process
-     * @private
-     */
-    processInput(value) {
+    handleButtonClick(value) {
         switch (value) {
+            case 'M+':
+                this.calculator.memoryAdd();
+                break;
+            case 'M-':
+                this.calculator.memorySubtract();
+                break;
+            case 'MR':
+                this.calculator.memoryRecall();
+                break;
+            case 'MC':
+                this.calculator.memoryClear();
+                break;
             case 'C':
                 this.calculator.clear();
                 break;
@@ -178,35 +157,45 @@ export class Keypad {
                 this.calculator.calculate();
                 break;
             default:
-                this.calculator.appendInput(value);
+                this.calculator.appendValue(value);
         }
     }
 
     /**
-     * Gets the current keyboard mapping.
-     * @returns {Object} The current key mapping object
-     * @example
-     * const mapping = keypad.getKeyMap();
-     * // Returns { '0': '0', '1': '1', ... }
+     * Handles keyboard input events.
+     * @param {KeyboardEvent} event - The keyboard event
+     * @private
      */
-    getKeyMap() {
-        return { ...this.keyMap };
+    handleKeyboardInput(event) {
+        const key = event.key;
+        
+        // Prevent default behavior for calculator keys
+        if (this.isCalculatorKey(key)) {
+            event.preventDefault();
+        }
+        
+        // Map keyboard keys to calculator functions
+        const keyMap = {
+            'Enter': '=',
+            'Escape': 'C',
+            'Backspace': '⌫',
+            'Delete': 'C'
+        };
+        
+        const value = keyMap[key] || key;
+        if (this.buttons[value]) {
+            this.handleButtonClick(value);
+        }
     }
 
     /**
-     * Updates the keyboard mapping.
-     * @param {Object} newKeyMap - The new key mapping object
-     * @throws {Error} If the new key map is invalid
-     * @example
-     * keypad.updateKeyMap({
-     *     'Enter': '=',
-     *     'Escape': 'C'
-     * });
+     * Checks if a keyboard key is used by the calculator.
+     * @param {string} key - The keyboard key
+     * @returns {boolean} True if the key is used by the calculator
+     * @private
      */
-    updateKeyMap(newKeyMap) {
-        if (typeof newKeyMap !== 'object' || newKeyMap === null) {
-            throw new Error('Invalid key map provided');
-        }
-        this.keyMap = { ...this.keyMap, ...newKeyMap };
+    isCalculatorKey(key) {
+        return Object.keys(this.buttons).includes(key) ||
+               ['Enter', 'Escape', 'Backspace', 'Delete'].includes(key);
     }
 } 

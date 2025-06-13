@@ -1,152 +1,148 @@
 /**
- * @fileoverview Display module for managing calculator display and notifications.
- * Handles all display-related operations including updates, errors, and notifications.
+ * @fileoverview Manages the calculator display and notifications.
  */
 
 /**
- * Display class for managing calculator display and user feedback.
- * @class Display
- * @example
- * const display = new Display();
- * display.initialize();
- * display.update('123'); // Updates display with "123"
+ * Class representing the calculator display.
  */
 export class Display {
     /**
      * Creates a new Display instance.
-     * @constructor
      */
     constructor() {
-        /** @private {HTMLInputElement|null} The display input element */
+        /** @private {HTMLElement|null} The main display element */
         this.displayElement = null;
         
-        /** @private {number|null} Timeout ID for notification removal */
-        this.notificationTimeout = null;
+        /** @private {HTMLElement|null} The notification element */
+        this.notificationElement = null;
+        
+        this.initialize();
     }
 
     /**
-     * Initializes the display by getting the display element.
-     * @throws {Error} If display element is not found
-     * @example
-     * display.initialize();
+     * Initializes the display by getting DOM elements.
+     * @private
      */
     initialize() {
-        this.displayElement = document.getElementById('display');
+        this.displayElement = document.querySelector('.calculator-display');
+        this.notificationElement = document.querySelector('.calculator-notification');
+        
         if (!this.displayElement) {
-            throw new Error('Display element not found');
+            console.error('Display element not found');
+        }
+        if (!this.notificationElement) {
+            console.error('Notification element not found');
         }
     }
 
     /**
      * Updates the display with a new value.
-     * @param {string|number} value - The value to display
-     * @example
-     * display.update('123'); // Shows "123" on display
-     * display.update(45.67); // Shows "45.67" on display
+     * @param {number|string} value - The value to display
      */
     update(value) {
-        if (this.displayElement) {
-            this.displayElement.value = value;
-            this.displayElement.classList.remove('error');
-        }
+        if (!this.displayElement) return;
+        
+        const formattedValue = this.formatNumber(value);
+        this.displayElement.textContent = formattedValue;
     }
 
     /**
-     * Clears the display and removes any error state.
-     * @example
-     * display.clear(); // Clears the display
+     * Clears the display.
      */
     clear() {
-        if (this.displayElement) {
-            this.displayElement.value = '';
-            this.displayElement.classList.remove('error');
-        }
+        if (!this.displayElement) return;
+        this.displayElement.textContent = '0';
     }
 
     /**
      * Gets the current display value.
      * @returns {string} The current display value
-     * @example
-     * const value = display.getValue(); // Returns current display value
      */
     getValue() {
-        return this.displayElement ? this.displayElement.value : '';
+        return this.displayElement ? this.displayElement.textContent : '0';
     }
 
     /**
-     * Shows an error message on the display.
-     * The error state is automatically cleared after 2 seconds.
+     * Shows an error message.
      * @param {string} message - The error message to display
-     * @example
-     * display.showError('Division by zero'); // Shows error for 2 seconds
      */
     showError(message) {
-        if (this.displayElement) {
-            this.displayElement.value = message;
-            this.displayElement.classList.add('error');
-            
-            setTimeout(() => {
-                this.displayElement.classList.remove('error');
-            }, 2000);
-        }
+        if (!this.notificationElement) return;
+        
+        this.notificationElement.textContent = message;
+        this.notificationElement.classList.add('error');
+        this.notificationElement.classList.remove('notification');
+        
+        // Clear error after 3 seconds
+        setTimeout(() => this.clearNotification(), 3000);
     }
 
     /**
-     * Shows a temporary notification message.
-     * The notification is automatically removed after animation.
-     * @param {string} message - The notification message
-     * @example
-     * display.showNotification('M+'); // Shows memory add notification
+     * Shows a notification message.
+     * @param {string} message - The notification message to display
      */
     showNotification(message) {
-        this.clearNotification();
-
-        const notification = document.createElement('div');
-        notification.className = 'memory-notification';
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        this.notificationTimeout = setTimeout(() => {
-            notification.remove();
-        }, 1000);
+        if (!this.notificationElement) return;
+        
+        this.notificationElement.textContent = message;
+        this.notificationElement.classList.add('notification');
+        this.notificationElement.classList.remove('error');
+        
+        // Clear notification after 1 second
+        setTimeout(() => this.clearNotification(), 1000);
     }
 
     /**
-     * Clears any existing notification.
-     * @private
+     * Clears the notification.
      */
     clearNotification() {
-        if (this.notificationTimeout) {
-            clearTimeout(this.notificationTimeout);
-            this.notificationTimeout = null;
-        }
+        if (!this.notificationElement) return;
         
-        const existingNotification = document.querySelector('.memory-notification');
-        if (existingNotification) {
-            existingNotification.remove();
-        }
+        this.notificationElement.textContent = '';
+        this.notificationElement.classList.remove('notification', 'error');
     }
 
     /**
-     * Formats a number for display with appropriate separators and precision.
-     * @param {number} value - The number to format
-     * @returns {string} The formatted number string
-     * @example
-     * display.formatNumber(1234.5678); // Returns "1,234.5678"
-     * display.formatNumber(1000000); // Returns "1,000,000"
+     * Formats a number for display.
+     * @param {number|string} value - The value to format
+     * @returns {string} The formatted number
+     * @private
      */
     formatNumber(value) {
-        if (typeof value !== 'number') {
+        if (typeof value === 'string') {
             return value;
         }
-
-        if (Number.isInteger(value)) {
-            return value.toLocaleString();
+        
+        // Handle very large or small numbers
+        if (Math.abs(value) >= 1e9 || (Math.abs(value) < 1e-9 && value !== 0)) {
+            return value.toExponential(8);
         }
+        
+        // Format regular numbers
+        const formatted = value.toString();
+        if (formatted.includes('.')) {
+            const [integer, decimal] = formatted.split('.');
+            return `${this.formatInteger(integer)}.${decimal}`;
+        }
+        
+        return this.formatInteger(formatted);
+    }
 
-        return value.toLocaleString(undefined, {
-            maximumFractionDigits: 8,
-            minimumFractionDigits: 0
-        });
+    /**
+     * Formats an integer with thousands separators.
+     * @param {string} integer - The integer to format
+     * @returns {string} The formatted integer
+     * @private
+     */
+    formatInteger(integer) {
+        const isNegative = integer.startsWith('-');
+        const digits = isNegative ? integer.slice(1) : integer;
+        
+        const parts = [];
+        for (let i = digits.length; i > 0; i -= 3) {
+            parts.unshift(digits.slice(Math.max(0, i - 3), i));
+        }
+        
+        return (isNegative ? '-' : '') + parts.join(',');
     }
 } 

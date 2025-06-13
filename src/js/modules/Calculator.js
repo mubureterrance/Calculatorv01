@@ -28,7 +28,7 @@ export class Calculator {
         this.display = new Display();
         
         /** @private {Keypad} The keypad module instance */
-        this.keypad = new Keypad(this);
+        this.keypad = new Keypad(this.display, this);
         
         /** @private {Memory} The memory module instance */
         this.memory = new Memory();
@@ -61,10 +61,17 @@ export class Calculator {
     }
 
     /**
-     * Sets up keyboard event listeners for calculator operations.
+     * Sets up event listeners for calculator operations.
      * @private
      */
     setupEventListeners() {
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('change', () => this.toggleTheme());
+        }
+
+        // Keyboard events
         document.addEventListener('keydown', (event) => this.handleKeyboardInput(event));
     }
 
@@ -160,15 +167,12 @@ export class Calculator {
      */
     calculate() {
         try {
-            if (!this.currentInput) return;
-            
             const result = this.engine.calculate(this.currentInput);
             this.lastResult = result;
             this.currentInput = result.toString();
             this.display.update(result);
         } catch (error) {
             this.display.showError(error.message);
-            this.currentInput = '';
         }
     }
 
@@ -180,14 +184,10 @@ export class Calculator {
      * calculator.memoryAdd(); // Adds 5 to memory
      */
     memoryAdd() {
-        try {
-            const value = parseFloat(this.display.getValue());
-            if (!isNaN(value)) {
-                this.memory.add(value);
-                this.display.showNotification('M+');
-            }
-        } catch (error) {
-            this.display.showError('Invalid value for memory');
+        const value = parseFloat(this.currentInput);
+        if (!isNaN(value)) {
+            this.memory.add(value);
+            this.display.showNotification('M+');
         }
     }
 
@@ -199,14 +199,10 @@ export class Calculator {
      * calculator.memorySubtract(); // Subtracts 3 from memory
      */
     memorySubtract() {
-        try {
-            const value = parseFloat(this.display.getValue());
-            if (!isNaN(value)) {
-                this.memory.subtract(value);
-                this.display.showNotification('M-');
-            }
-        } catch (error) {
-            this.display.showError('Invalid value for memory');
+        const value = parseFloat(this.currentInput);
+        if (!isNaN(value)) {
+            this.memory.subtract(value);
+            this.display.showNotification('M-');
         }
     }
 
@@ -220,6 +216,7 @@ export class Calculator {
         if (value !== null) {
             this.currentInput = value.toString();
             this.display.update(value);
+            this.display.showNotification('MR');
         }
     }
 
@@ -239,6 +236,6 @@ export class Calculator {
      * calculator.toggleTheme(); // Switches between light and dark mode
      */
     toggleTheme() {
-        this.themeManager.toggle();
+        this.themeManager.toggleTheme();
     }
 } 

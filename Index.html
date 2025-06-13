@@ -3,60 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Advanced Calculator</title>
+  <title>Modern Calculator</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
     <div class="calculator-container">
-        <div class="toggle-container">
-            <label class="switch" aria-label="Toggle dark mode">
-                <input type="checkbox" id="themeToggle" />
-                <span class="slider"></span>
-            </label>
-            <span class="mode-label">Dark Mode</span>
-        </div>
-        
         <div class="calculator" role="application" aria-label="Calculator">
-            <div class="display-container">
-                <input type="text" 
-                       id="display" 
-                       readonly 
-                       aria-label="Calculator display"
-                       aria-live="polite" />
+            <div class="calculator-header">
+                <div class="toggle-container">
+                    <label class="switch" aria-label="Toggle dark mode">
+                        <input type="checkbox" id="themeToggle" />
+                        <span class="slider"></span>
+                    </label>
+                    <span class="mode-label">Dark Mode</span>
+                </div>
             </div>
 
-            <div class="memory-buttons">
-                <button data-button-id="memoryAdd" aria-label="Memory Add">M+</button>
-                <button data-button-id="memorySubtract" aria-label="Memory Subtract">M-</button>
-                <button data-button-id="memoryRecall" aria-label="Memory Recall">MR</button>
-                <button data-button-id="memoryClear" aria-label="Memory Clear">MC</button>
+            <div class="calculator-display-container">
+                <div class="calculator-display" role="textbox" aria-label="Calculator display" aria-live="polite">0</div>
+                <div class="calculator-notification" aria-live="polite"></div>
             </div>
 
-            <div class="buttons">
-                <button data-button-id="clear" class="function" aria-label="Clear">C</button>
-                <button data-button-id="backspace" class="function" aria-label="Backspace">⌫</button>
-                <button data-button-id="operator(" class="function" aria-label="Open parenthesis">(</button>
-                <button data-button-id="operator)" class="function" aria-label="Close parenthesis">)</button>
-
-                <button data-button-id="number7" aria-label="Seven">7</button>
-                <button data-button-id="number8" aria-label="Eight">8</button>
-                <button data-button-id="number9" aria-label="Nine">9</button>
-                <button data-button-id="operator/" class="operator" aria-label="Divide">÷</button>
-
-                <button data-button-id="number4" aria-label="Four">4</button>
-                <button data-button-id="number5" aria-label="Five">5</button>
-                <button data-button-id="number6" aria-label="Six">6</button>
-                <button data-button-id="operator*" class="operator" aria-label="Multiply">×</button>
-
-                <button data-button-id="number1" aria-label="One">1</button>
-                <button data-button-id="number2" aria-label="Two">2</button>
-                <button data-button-id="number3" aria-label="Three">3</button>
-                <button data-button-id="operator-" class="operator" aria-label="Subtract">−</button>
-
-                <button data-button-id="number0" aria-label="Zero">0</button>
-                <button data-button-id="operator." aria-label="Decimal point">.</button>
-                <button data-button-id="equals" class="equals" aria-label="Calculate result">=</button>
-                <button data-button-id="operator+" class="operator" aria-label="Add">+</button>
+            <div class="calculator-keypad">
+                <!-- Buttons will be created dynamically by the Keypad module -->
             </div>
         </div>
 
@@ -67,6 +36,7 @@
                 <li>Enter or =: Calculate result</li>
                 <li>Escape: Clear display</li>
                 <li>Backspace: Delete last character</li>
+                <li>M: Memory operations (M+, M-, MR, MC)</li>
             </ul>
         </div>
     </div>
